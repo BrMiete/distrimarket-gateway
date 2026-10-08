@@ -1,0 +1,47 @@
+server:
+  port: 8080
+
+spring:
+  main:
+    web-application-type: reactive
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # 1. Enrutamiento hacia Microservicio Inventario
+        - id: distrimarket-inventario
+          uri: lb://DISTRIMARKET-INVENTARIO
+          predicates:
+            - Path=/inventario/**
+
+        # 2. Enrutamiento hacia Microservicio Compras
+        - id: distrimarket-compras
+          uri: lb://DISTRIMARKET-COMPRAS
+          predicates:
+            - Path=/compras/**
+
+        # 3. Enrutamiento hacia Microservicio Ventas
+        - id: distrimarket-ventas
+          uri: lb://DISTRIMARKET-VENTAS
+          predicates:
+            - Path=/ventas/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+# Menú desplegable "Select a definition"
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    url: /openapi.yaml
+    operations-sorter: method
+    tags-sorter: alpha
