@@ -31,6 +31,57 @@ spring:
           predicates:
             - Path=/ventas/**
 
+        # 4. Enrutamiento hacia Microservicio de Seguridad (login, usuarios y roles)
+        - id: distrimarket-auth
+          uri: lb://DISTRIMARKET-AUTH
+          predicates:
+            - Path=/auth/**
+
+# ---------------------------------------------------------------
+# Seguridad (primera capa). Cada microservicio vuelve a validar el token.
+# ---------------------------------------------------------------
+security:
+  jwt:
+    # Misma clave y emisor que distrimarket-ms-auth (JWT_SECRET / JWT_ISSUER).
+    secret: ${JWT_SECRET:distrimarket-dev-secret-cambiar-en-produccion-2026}
+    issuer: ${JWT_ISSUER:distrimarket-auth}
+  # Rutas que no necesitan token.
+  public-paths:
+    - /auth/login
+    - /swagger-ui.html
+    - /swagger-ui/**
+    - /webjars/**
+    - /v3/api-docs/**
+    - /openapi.yaml
+    - /actuator/health/**
+    - /actuator/info
+  # Roles por ruta, evaluados en orden (la primera que coincide decide).
+  # Lo que no figura aquí solo exige un token válido.
+  rules:
+    - pattern: /auth/usuarios/**
+      roles: [ADMIN]
+    - pattern: /auth/roles/**
+      roles: [ADMIN]
+    # Compras también lee los medios de pago al cargar una factura de compra.
+    - pattern: /ventas/medios-pago/**
+      methods: [GET]
+      roles: [ADMIN, VENDEDOR, COMPRADOR]
+    - pattern: /ventas/**
+      roles: [ADMIN, VENDEDOR]
+    - pattern: /compras/**
+      roles: [ADMIN, COMPRADOR]
+    # Ventas y compras consultan productos, depósitos y empleados.
+    - pattern: /inventario/**
+      methods: [GET]
+      roles: [ADMIN, DEPOSITERO, VENDEDOR, COMPRADOR]
+    - pattern: /inventario/**
+      roles: [ADMIN, DEPOSITERO]
+
+logging:
+  level:
+    com.distrimarket.gateway: ${LOG_LEVEL_APP:INFO}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:INFO}
+
 eureka:
   client:
     service-url:
