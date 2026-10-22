@@ -23,12 +23,10 @@ import java.nio.charset.StandardCharsets;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, properties = {
-        "eureka.client.enabled=false",
-        "spring.cloud.gateway.discovery.locator.enabled=false",
-        "spring.cloud.loadbalancer.cache.enabled=false",
-        "spring.cloud.discovery.client.simple.instances.DISTRIMARKET-INVENTARIO[0].uri=http://inventario.test:8081",
-        "spring.cloud.discovery.client.simple.instances.DISTRIMARKET-COMPRAS[0].uri=http://compras.test:8083",
-        "spring.cloud.discovery.client.simple.instances.DISTRIMARKET-VENTAS[0].uri=http://ventas.test:8082"
+        "COMPRAS_URL=http://compras.test:8083",
+        "INVENTARIO_URL=http://inventario.test:8081",
+        "VENTAS_URL=http://ventas.test:8082",
+        "AUTH_URL=http://auth.test:8084"
 })
 @TestExecutionListeners(listeners = DependencyInjectionTestExecutionListener.class, inheritListeners = false)
 class GatewayRoutingTest {
@@ -53,6 +51,14 @@ class GatewayRoutingTest {
             client.get().uri(path).exchange().expectStatus().isOk()
                     .expectBody(String.class).isEqualTo("GET http://" + route[2] + path + " ");
         }
+    }
+
+    @Test
+    void forwardsAuthPaths() {
+        client.get().uri("/auth/usuarios?page=0&size=2")
+                .exchange().expectStatus().isOk()
+                .expectBody(String.class)
+                .isEqualTo("GET http://auth.test:8084/auth/usuarios?page=0&size=2 ");
     }
 
     @Test
@@ -86,8 +92,9 @@ class GatewayRoutingTest {
         client.get().uri("/openapi.yaml").exchange().expectStatus().isOk()
                 .expectBody(String.class).value(contract -> {
                     org.assertj.core.api.Assertions.assertThat(contract)
-                            .contains("url: /", "/compras/facturas:", "/inventario/productos:",
-                                    "/ventas/facturas-venta:", "/ventas/facturas:");
+                            .contains("url: http://localhost:8080", "/compras/facturas:",
+                                    "/inventario/productos:", "/ventas/facturas-venta:",
+                                    "/ventas/facturas:", "/auth/login:");
                 });
         client.get().uri("/v3/api-docs/swagger-config").exchange().expectStatus().isOk()
                 .expectBody().jsonPath("$.url").isEqualTo("/openapi.yaml");

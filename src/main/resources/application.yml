@@ -8,21 +8,17 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
       routes:
         # Compras has controller prefixes, so only its documentation path is rewritten.
         - id: compras-api-docs
-          uri: lb://DISTRIMARKET-COMPRAS
+          uri: ${COMPRAS_URL:http://localhost:8083}
           predicates:
             - Path=/compras/v3/api-docs,/compras/v3/api-docs.yaml
           filters:
             - StripPrefix=1
 
         - id: medios-pago-legacy
-          uri: lb://DISTRIMARKET-VENTAS
+          uri: ${VENTAS_URL:http://localhost:8082}
           predicates:
             - Path=/medios-pago,/medios-pago/**
           filters:
@@ -30,28 +26,27 @@ spring:
 
         # 1. Enrutamiento hacia Microservicio Inventario
         - id: distrimarket-inventario
-          uri: lb://DISTRIMARKET-INVENTARIO
+          uri: ${INVENTARIO_URL:http://localhost:8081}
           predicates:
             - Path=/inventario/**
 
         # 2. Enrutamiento hacia Microservicio Compras
         - id: distrimarket-compras
-          uri: lb://DISTRIMARKET-COMPRAS
+          uri: ${COMPRAS_URL:http://localhost:8083}
           predicates:
             - Path=/compras/**
 
         # 3. Enrutamiento hacia Microservicio Ventas
         - id: distrimarket-ventas
-          uri: lb://DISTRIMARKET-VENTAS
+          uri: ${VENTAS_URL:http://localhost:8082}
           predicates:
             - Path=/ventas/**
 
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:${EUREKA_URL:http://localhost:8761/eureka/}}
-    register-with-eureka: true
-    fetch-registry: true
+        # 4. Enrutamiento hacia Microservicio Auth
+        - id: distrimarket-auth
+          uri: ${AUTH_URL:http://localhost:8084}
+          predicates:
+            - Path=/auth/**
 
 # Menú desplegable "Select a definition"
 springdoc:
