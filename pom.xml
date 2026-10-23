@@ -26,6 +26,7 @@
     <properties>
         <spring-cloud.version>2023.0.1</spring-cloud.version>
         <springdoc.version>2.5.0</springdoc.version>
+        <distrimarket-common.version>1.0.1-SNAPSHOT</distrimarket-common.version>
     </properties>
 
     <dependencyManagement>
@@ -74,7 +75,7 @@
         <dependency>
             <groupId>com.distrimarket</groupId>
             <artifactId>distrimarket-common</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>${distrimarket-common.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.boot</groupId>

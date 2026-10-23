@@ -96,3 +96,5 @@ springdoc:
     url: /openapi.yaml
     operations-sorter: method
     tags-sorter: alpha
+    disable-swagger-default-url: true
+    config-url: /v3/api-docs/swagger-config
