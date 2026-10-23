@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   main:
@@ -8,32 +8,34 @@ spring:
     name: api-gateway
   cloud:
     gateway:
+      # Por defecto, rutas fijas por URL (sin Eureka). Para usar Eureka: EUREKA_ENABLED=true y
+      # cada *_URL con el nombre registrado, por ejemplo VENTAS_URL=lb://DISTRIMARKET-VENTAS.
       discovery:
         locator:
-          enabled: true
+          enabled: ${EUREKA_ENABLED:false}
           lower-case-service-id: true
       routes:
         # 1. Enrutamiento hacia Microservicio Inventario
         - id: distrimarket-inventario
-          uri: lb://DISTRIMARKET-INVENTARIO
+          uri: ${INVENTARIO_URL:http://localhost:8081}
           predicates:
             - Path=/inventario/**
 
         # 2. Enrutamiento hacia Microservicio Compras
         - id: distrimarket-compras
-          uri: lb://DISTRIMARKET-COMPRAS
+          uri: ${COMPRAS_URL:http://localhost:8083}
           predicates:
             - Path=/compras/**
 
         # 3. Enrutamiento hacia Microservicio Ventas
         - id: distrimarket-ventas
-          uri: lb://DISTRIMARKET-VENTAS
+          uri: ${VENTAS_URL:http://localhost:8082}
           predicates:
             - Path=/ventas/**
 
         # 4. Enrutamiento hacia Microservicio de Seguridad (login, usuarios y roles)
         - id: distrimarket-auth
-          uri: lb://DISTRIMARKET-AUTH
+          uri: ${AUTH_URL:http://localhost:8084}
           predicates:
             - Path=/auth/**
 
@@ -84,8 +86,10 @@ logging:
 
 eureka:
   client:
+    # Apagado por defecto: el grupo enruta por URL fija. EUREKA_ENABLED=true para registrarse y usar lb://.
+    enabled: ${EUREKA_ENABLED:false}
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
     register-with-eureka: true
     fetch-registry: true
 
