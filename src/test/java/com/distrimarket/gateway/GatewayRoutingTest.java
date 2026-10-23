@@ -23,10 +23,13 @@ import java.nio.charset.StandardCharsets;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, properties = {
-        "COMPRAS_URL=http://compras.test:8083",
-        "INVENTARIO_URL=http://inventario.test:8081",
-        "VENTAS_URL=http://ventas.test:8082",
-        "AUTH_URL=http://auth.test:8084"
+        "eureka.client.enabled=false",
+        "spring.cloud.gateway.discovery.locator.enabled=false",
+        "spring.cloud.loadbalancer.cache.enabled=false",
+        "spring.cloud.discovery.client.simple.instances.DISTRIMARKET-INVENTARIO[0].uri=http://inventario.test:8081",
+        "spring.cloud.discovery.client.simple.instances.DISTRIMARKET-COMPRAS[0].uri=http://compras.test:8083",
+        "spring.cloud.discovery.client.simple.instances.DISTRIMARKET-VENTAS[0].uri=http://ventas.test:8082",
+        "spring.cloud.discovery.client.simple.instances.DISTRIMARKET-AUTH[0].uri=http://auth.test:8084"
 })
 @TestExecutionListeners(listeners = DependencyInjectionTestExecutionListener.class, inheritListeners = false)
 class GatewayRoutingTest {
