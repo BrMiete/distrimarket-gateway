@@ -8,34 +8,49 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-      # Por defecto, rutas fijas por URL (sin Eureka). Para usar Eureka: EUREKA_ENABLED=true y
-      # cada *_URL con el nombre registrado, por ejemplo VENTAS_URL=lb://DISTRIMARKET-VENTAS.
+      # Cada microservicio se ubica por su nombre en Eureka (lb://). El servidor Eureka está en
+      # eureka-server/ de este repo. Cada *_URL permite apuntar a una dirección fija si hace falta.
       discovery:
         locator:
-          enabled: ${EUREKA_ENABLED:false}
+          enabled: ${EUREKA_ENABLED:true}
           lower-case-service-id: true
       routes:
+        # Compras tiene los prefijos en sus controladores: solo se reescribe su documentación.
+        - id: compras-api-docs
+          uri: ${COMPRAS_URL:lb://DISTRIMARKET-COMPRAS}
+          predicates:
+            - Path=/compras/v3/api-docs,/compras/v3/api-docs.yaml
+          filters:
+            - StripPrefix=1
+
+        - id: medios-pago-legacy
+          uri: ${VENTAS_URL:lb://DISTRIMARKET-VENTAS}
+          predicates:
+            - Path=/medios-pago,/medios-pago/**
+          filters:
+            - PrefixPath=/ventas
+
         # 1. Enrutamiento hacia Microservicio Inventario
         - id: distrimarket-inventario
-          uri: ${INVENTARIO_URL:http://localhost:8081}
+          uri: ${INVENTARIO_URL:lb://DISTRIMARKET-INVENTARIO}
           predicates:
             - Path=/inventario/**
 
         # 2. Enrutamiento hacia Microservicio Compras
         - id: distrimarket-compras
-          uri: ${COMPRAS_URL:http://localhost:8083}
+          uri: ${COMPRAS_URL:lb://DISTRIMARKET-COMPRAS}
           predicates:
             - Path=/compras/**
 
         # 3. Enrutamiento hacia Microservicio Ventas
         - id: distrimarket-ventas
-          uri: ${VENTAS_URL:http://localhost:8082}
+          uri: ${VENTAS_URL:lb://DISTRIMARKET-VENTAS}
           predicates:
             - Path=/ventas/**
 
         # 4. Enrutamiento hacia Microservicio de Seguridad (login, usuarios y roles)
         - id: distrimarket-auth
-          uri: ${AUTH_URL:http://localhost:8084}
+          uri: ${AUTH_URL:lb://DISTRIMARKET-AUTH}
           predicates:
             - Path=/auth/**
 
@@ -86,10 +101,10 @@ logging:
 
 eureka:
   client:
-    # Apagado por defecto: el grupo enruta por URL fija. EUREKA_ENABLED=true para registrarse y usar lb://.
-    enabled: ${EUREKA_ENABLED:false}
+    # El gateway se registra y busca los microservicios en Eureka. EUREKA_ENABLED=false para no usarlo.
+    enabled: ${EUREKA_ENABLED:true}
     service-url:
-      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:${EUREKA_URL:http://localhost:8761/eureka/}}
     register-with-eureka: true
     fetch-registry: true
 
