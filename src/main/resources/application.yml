@@ -65,6 +65,8 @@ security:
   # Rutas que no necesitan token.
   public-paths:
     - /auth/login
+    # Formulario de contacto a soporte (desde el login, sin sesión).
+    - /ventas/soporte/contacto
     - /swagger-ui.html
     - /swagger-ui/**
     - /webjars/**
